@@ -64,15 +64,16 @@ def test_run_script_exists(github_repo_path: pathlib.Path):
 
 @pytest.mark.parametrize("function_name", FUNCTIONS)
 def test_function_exists(function_name: str, student_implementations):
-    assert hasattr(
-        student_implementations, function_name
-    ), f"Missing implemetation for {function_name}."
+    assert hasattr(student_implementations, function_name), (
+        f"Missing implemetation for {function_name}."
+    )
 
 
 @pytest.mark.parametrize("function_name", FUNCTIONS)
 def test_function_has_docstring(function_name: str, student_implementations):
     fn = getattr(student_implementations, function_name)
     assert fn.__doc__, f"Function {function_name} has no docstring."
+
 
 """ We are using `ruff` instead of `black`
 def test_black_format(github_repo_path: pathlib.Path):
@@ -94,6 +95,7 @@ def test_black_format(github_repo_path: pathlib.Path):
         except black.NothingChanged:
             pass
 """
+
 
 def test_no_todo_left(github_repo_path: pathlib.Path):
     python_files = list(github_repo_path.glob("**/*.py"))

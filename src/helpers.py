@@ -1,18 +1,23 @@
 """Some helper functions for project 1."""
 
+from io import TextIOWrapper
 import csv
 import numpy as np
 import os
+import pathlib
+import compression.zstd as zstd  # requires python 3.14
 
 
-def load_csv_data(data_path, sub_sample=False):
+def load_data(
+    data_path: os.PathLike = "./data/", sub_sample: bool = False
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    This function loads the data and returns the respectinve numpy arrays.
-    Remember to put the 3 files in the same folder and to not change the names of the files.
+    It takes like a minute to run `load_csv_data`, use this function instead.
+    Will be slow the first time you run it, as the data has to be loaded from the csv at least once.
 
     Args:
-        data_path (str): datafolder path
-        sub_sample (bool, optional): If True the data will be subsempled. Default to False.
+        data_path (str, optional): The path to the data folder. Defaults to "./data/".
+        sub_sample (bool, optional): If True the data will be subsempled. Defaults to False.
 
     Returns:
         x_train (np.array): training data
@@ -21,19 +26,96 @@ def load_csv_data(data_path, sub_sample=False):
         train_ids (np.array): ids of training data
         test_ids (np.array): ids of test data
     """
+    data_path: pathlib.Path = pathlib.Path(data_path)
+
+    if (filepath := data_path.joinpath("all.npz")).is_file():
+        with np.load(filepath, allow_pickle=False) as data:
+            train_ids = data["train_ids"]
+            x_train = data["x_train"]
+            y_train = data["y_train"]
+
+            test_ids = data["test_ids"]
+            x_test = data["x_test"]
+
+            if sub_sample:
+                y_train = y_train[::50]
+                x_train = x_train[::50]
+                train_ids = train_ids[::50]
+
+            return x_train, x_test, y_train, train_ids, test_ids
+    else:
+        print("Must generate `all.npz` from scratch, will take longer than usual")
+
+        print("Loading data from the csv files...")
+        x_train, x_test, y_train, train_ids, test_ids = load_csv_data(data_path, False)
+
+        print("Saving data to `all.npz`...")
+        np.savez_compressed(
+            data_path.joinpath("all.npz"),
+            train_ids=train_ids,
+            x_train=x_train,
+            y_train=y_train,
+            test_ids=test_ids,
+            x_test=x_test,
+            allow_pickle=False,
+        )
+
+        if sub_sample:
+            y_train = y_train[::50]
+            x_train = x_train[::50]
+            train_ids = train_ids[::50]
+
+        return x_train, x_test, y_train, train_ids, test_ids
+
+
+def load_csv_data(
+    data_path: os.PathLike = "./data/", sub_sample: bool = False
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Use `load_data` instead.
+
+    This function loads the data and returns the respectinve numpy arrays.
+    Remember to put the 3 files in the same folder and to not change the names of the files.
+
+    Args:
+        data_path (str, optional): The path to the data folder. Defaults to "./data/".
+        sub_sample (bool, optional): If True the data will be subsempled. Defaults to False.
+
+    Returns:
+        x_train (np.array): training data
+        x_test (np.array): test data
+        y_train (np.array): labels for training data in format (-1,1)
+        train_ids (np.array): ids of training data
+        test_ids (np.array): ids of test data
+    """
+    data_path: pathlib.Path = pathlib.Path(data_path)
+
+    def get_file_object(filename: str) -> TextIOWrapper:
+        if filename.endswith(".zst"):
+            filename = filename[:-4]
+
+        if (filepath := data_path.joinpath(filename + ".zst")).is_file():
+            return zstd.open(filepath, mode="rt")
+        elif (filepath := data_path.joinpath(filename)).is_file():
+            return open(filepath, mode="rt")
+        else:
+            raise FileNotFoundError(
+                f"Could not find `{filename + '.zst'}` or `{filename}` in `{data_path}`"
+            )
+
     y_train = np.genfromtxt(
-        os.path.join(data_path, "y_train.csv"),
+        get_file_object("y_train.csv"),
         delimiter=",",
         skip_header=1,
         dtype=int,
         usecols=1,
     )
+
     x_train = np.genfromtxt(
-        os.path.join(data_path, "x_train.csv"), delimiter=",", skip_header=1
+        get_file_object("x_train.csv"), delimiter=",", skip_header=1
     )
-    x_test = np.genfromtxt(
-        os.path.join(data_path, "x_test.csv"), delimiter=",", skip_header=1
-    )
+
+    x_test = np.genfromtxt(get_file_object("x_test.csv"), delimiter=",", skip_header=1)
 
     train_ids = x_train[:, 0].astype(dtype=int)
     test_ids = x_test[:, 0].astype(dtype=int)
