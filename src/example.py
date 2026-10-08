@@ -20,7 +20,7 @@ def main():
     )
     print()
     print(
-        f"is test_ids equivalent to `x_train.shape[0] + np.arange(x_test.shape[0])`? -> {np.all(test_ids == x_train.shape[0] +  np.arange(x_test.shape[0]))}"
+        f"is test_ids equivalent to `x_train.shape[0] + np.arange(x_test.shape[0])`? -> {np.all(test_ids == x_train.shape[0] + np.arange(x_test.shape[0]))}"
     )
 
 
