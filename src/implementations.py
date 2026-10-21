@@ -1,85 +1,108 @@
 from collections.abc import Generator
 from collections.abc import Callable
+from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 from functools import partial
+from itertools import islice
 
 # Copied from the dev branch of numpy (will be available in 2.6 according to their online ref)
 type Array1D[ST: np.generic] = np.ndarray[tuple[int], np.dtype[ST]]
 type Array2D[ST: np.generic] = np.ndarray[tuple[int, int], np.dtype[ST]]
 
 
+@dataclass(init=False)
+class DataLoader:
+    n: int
+    y_: Array1D
+    x_: Array2D
+    rng: np.random.Generator
+    batch_size: int
+
+    def __init__(
+        self,
+        y: Array1D,
+        x: Array2D,
+        batch_size: int | None = None,
+        rng_seed: int | None = None,
+    ):
+        assert y.shape[0] == x.shape[0]
+        if batch_size is not None:
+            assert batch_size > 0
+
+        self.n = y.shape[0]
+        self.y_ = y
+        self.x_ = x
+        self.rng = np.random.default_rng(rng_seed)
+        self.batch_size = self.n if batch_size is None else batch_size
+
+    @property
+    def y(self) -> Array1D:
+        return self.y_
+
+    @property
+    def x(self) -> Array2D:
+        return self.x_
+
+    @property
+    def data(self) -> tuple[Array1D, Array2D]:
+        return self.y_, self.x_
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> tuple[Array1D, Array2D]:
+        if self.batch_size == self.n:
+            return self.data
+        else:
+            indices_for_batch: Array1D = self.rng.choice(
+                np.arange(self.n), size=self.batch_size
+            )
+            return self.y_[indices_for_batch], self.x_[indices_for_batch, :]
+
+
 def _gradient_descent_generic(
-    dataloader: Generator[tuple[Array1D, Array2D]],
+    dataloader: DataLoader,
     compute_loss_func: Callable[[...], float],
     compute_grad_func: Callable[[...], Array1D],
     initial_w: Array1D,
+    max_iters: int,
     gamma: float,
-    append_final_loss_flag: bool = True,
-) -> tuple[Array1D, list[float]]:
+) -> tuple[Array1D, float]:
     """
-    Generic private function for gradient descent. I hate code duplication.
+    Generic function for gradient descent. I hate code duplication.
     But to be fair this might not be too readable either.
 
     Parameters
     ----------
-    dataloader : Generator[tuple[Array1D, Array2D]]
-        The poor man's alternative to a pytorch dataloader.
+    dataloader : DataLoader
+        The poor man's alternative to a PyTorch dataloader.
     compute_loss_func: Callable[[...], float],
         The function used to compute the loss, called using `compute_loss_func(y, tx, w)`.
     compute_grad_func: Callable[[...], Array1D],
         The function used to compute the gradient, called using `compute_grad_func(y, tx, w)`.
     initial_w : Array1D
         The initial weights.
+    max_iters : int
+        The maximum number of iterations.
     gamma : float
         The step size parameter used.
-    append_final_loss_flag : bool
-        Decides if the loss is computed at the end and appended to the losses,
-        not that the losses are computed at the start of each epoch and not at the end.
 
     Returns
     -------
     Array1D
         The final weights of the model.
-    list[float]:
-        The losses at each epoch, index with -1 to get the (semi-)final loss.
+    float:
+        The final loss of the model.
     """
     w: Array1D = initial_w
-    losses: list[float] = []
 
-    for n_iter, (y, tx) in enumerate(dataloader):
-        losses.append(compute_loss_func(y, tx, w))
+    for n_iter, (y, tx) in enumerate(islice(dataloader, max_iters)):
         grad: Array1D = compute_grad_func(y, tx, w)
-
         w = w - gamma * grad
 
-    if append_final_loss_flag:
-        final_loss = compute_loss_func(y, tx, w)
-        losses.append(final_loss)
-
-    return w, losses
-
-
-def create_gd_dataloader(y: Array1D, tx: Array2D, max_iters: int):
-    n_iter = 0
-    while n_iter < max_iters:
-        yield y, tx
-
-
-def create_sgd_dataloader(
-    y: Array1D,
-    tx: Array2D,
-    max_iters: int,
-    batch_size: int,
-):
-    N = y.shape[0]
-    indices: Array1D = np.arange(N)
-    rng = np.random.default_rng()
-
-    n_iter = 0
-    while n_iter < max_iters:
-        indices_for_batch: Array1D = rng.choice(indices, size=batch_size)
-        yield y[indices_for_batch], tx[indices_for_batch, :]
+    final_loss = compute_loss_func(*dataloader.data, w)
+    return w, final_loss
 
 
 def compute_lr_mse_loss(
@@ -110,30 +133,37 @@ def mean_squared_error_gd(
     initial_w: Array1D,
     max_iters: int,
     gamma: float,
-    append_final_loss_flag: bool = True,
-) -> tuple[Array1D, list[float]]:
+) -> tuple[Array1D, float]:
     """The Gradient Descent (GD) algorithm for linear regression using MSE as the cost function.
 
-    Args:
-        y: shape=(N, )
-        tx: shape=(N,2)
-        initial_w: shape=(2, ). The initial guess (or the initialization) for the model parameters
-        max_iters: a scalar denoting the total number of iterations of GD
-        gamma: a scalar denoting the stepsize
+    Parameters
+    ----------
+    y : Array1D
+        The observed output samples, an array of shape (N,) where N is the number of samples.
+    tx : Array2D
+        The observed input samples, a matrix of shape (N, D) where D is the number of dimensions/features.
+    initial_w : Array1D
+        The initial weights.
+    max_iters : int
+        The maximum number of iterations.
+    gamma : float
+        The step size parameter used.
 
-    Returns:
-        w: the vector containing the final weights of the model
-        losses:
-            list containing the loss at every epoch, has a lenght of `max_iters+1` if append_final_loss_flag is set to `True`.
+    Returns
+    -------
+    Array1D
+        The final weights of the model.
+    float:
+        The final loss of the model.
     """
 
     return _gradient_descent_generic(
-        dataloader=create_gd_dataloader(y, tx, max_iters),
+        dataloader=DataLoader(y, tx),
         compute_loss_func=compute_lr_mse_loss,
         compute_grad_func=compute_lr_mse_grad,
         initial_w=initial_w,
+        max_iters=max_iters,
         gamma=gamma,
-        append_final_loss_flag=append_final_loss_flag,
     )
 
 
@@ -144,30 +174,37 @@ def mean_squared_error_sgd(
     max_iters: int,
     gamma: float,
     batch_size: int = 1,
-    append_final_loss_flag: bool = True,
-) -> tuple[Array1D, list[float]]:
+) -> tuple[Array1D, float]:
     """The Stochastic Gradient Descent (SGD) algorithm for linear regression using MSE as the cost function.
 
-    Args:
-        y: shape=(N, )
-        tx: shape=(N,2)
-        initial_w: shape=(2, ). The initial guess (or the initialization) for the model parameters
-        max_iters: a scalar denoting the total number of iterations of GD
-        gamma: a scalar denoting the stepsize
+    Parameters
+    ----------
+    y : Array1D
+        The observed output samples, an array of shape (N,) where N is the number of samples.
+    tx : Array2D
+        The observed input samples, a matrix of shape (N, D) where D is the number of dimensions/features.
+    initial_w : Array1D
+        The initial weights.
+    max_iters : int
+        The maximum number of iterations.
+    gamma : float
+        The step size parameter used.
 
-    Returns:
-        w: the vector containing the final weights of the model
-        losses:
-            list containing the loss at every epoch, has a lenght of `max_iters+1` if append_final_loss_flag is set to `True`
+    Returns
+    -------
+    Array1D
+        The final weights of the model.
+    float:
+        The final loss of the model.
     """
 
     return _gradient_descent_generic(
-        dataloader=create_sgd_dataloader(y, tx, max_iters, batch_size),
+        dataloader=DataLoader(y, tx, batch_size),
         compute_loss_func=compute_lr_mse_loss,
         compute_grad_func=compute_lr_mse_grad,
         initial_w=initial_w,
+        max_iters=max_iters,
         gamma=gamma,
-        append_final_loss_flag=append_final_loss_flag,
     )
 
 
@@ -177,13 +214,19 @@ def least_squares(
 ) -> tuple[Array1D, float]:
     """Computes the least squares solution.
 
-    Args:
-        y: numpy array of shape (N,) where N is the number of samples
-        tx: numpy array of shape (N,D) where D is the number of features/dimensions
+    Parameters
+    ----------
+    y : Array1D
+        The observed output samples, an array of shape (N,) where N is the number of samples.
+    tx : Array2D
+        The observed input samples, a matrix of shape (N, D) where D is the number of dimensions/features.
 
-    Returns:
-        w: vector of the optimal model weights, a numpy array of shape (D,) where D is the number of features/dimensions
-        MSE: a scalar representing the mean squared error
+    Returns
+    -------
+    Array1D
+        The computed optimal weights of the model, an array of shape (D,).
+    float:
+        The (MSE) loss of the model.
     """
     # We wish to solve the following: (X^T X) w = X^T y
     lhs = tx.T @ tx
@@ -198,21 +241,29 @@ def ridge_regression(
     tx: Array2D,
     lambda_: float,
 ) -> tuple[Array1D, float]:
-    """Computes the least squares solution.
+    """Computes the least squares solution with regularization.
 
-    Args:
-        y: numpy array of shape (N,) where N is the number of samples
-        tx: numpy array of shape (N,D) where D is the number of features/dimensions
-        lambda_: the λ term (scalar) used in ridge regression
+    Parameters
+    ----------
+    y : Array1D
+        The observed output samples, an array of shape (N,) where N is the number of samples.
+    tx : Array2D
+        The observed input samples, a matrix of shape (N, D) where D is the number of dimensions/features.
+    lambda_ : float
+        The λ term used in regularization.
 
-    Returns:
-        w: vector of the optimal model weights, a numpy array of shape (D,) where D is the number of features/dimensions
-        MSE: a scalar representing the mean squared error
+    Returns
+    -------
+    Array1D
+        The computed optimal weights of the model, an array of shape (D,).
+    float:
+        The loss of the model.
     """
     # We wish to solve the following: (X^T X λ'I) w = X^T y
     # Where λ' = 2Nλ
-    N = y.shape[0]
-    lhs = tx.T @ tx @ (2 * N * lambda_ * np.identity(N))
+
+    N, D = tx.shape
+    lhs = tx.T @ tx + (2 * N * lambda_ * np.identity(D))
     rhs = tx.T @ y
     w_ls_ridge = np.linalg.solve(lhs, rhs)
     mse = compute_lr_mse_loss(y, tx, w_ls_ridge)
@@ -251,15 +302,39 @@ def logistic_regression(
     initial_w: Array1D,
     max_iters: int,
     gamma: float,
-    append_final_loss_flag: bool = True,
-) -> tuple[Array1D, list[float]]:
+) -> tuple[Array1D, float]:
+    """
+    Finds the model parameters for logistic regression using gradient descent.
+
+    Parameters
+    ----------
+    y : Array1D
+        Our observed binary outputs, an array of shape (N,) where N is the number of samples,
+        the values contained within should be either zero or one.
+    tx : Array2D
+        Our observed inputs, a matrix of shape (N, D) where D is the number of features/dimensions.
+    initial_w : Array1D
+        The initial weights.
+    max_iters : int
+        The maximum number of iterations.
+    gamma : float
+        The step size parameter used.
+
+    Returns
+    -------
+    Array1D
+        The final weights of the model.
+    float:
+        The final loss of the model.
+    """
+
     return _gradient_descent_generic(
-        dataloader=create_gd_dataloader(y, tx, max_iters),
+        dataloader=DataLoader(y, tx),
         compute_loss_func=compute_logreg_loss,
         compute_grad_func=compute_logreg_grad,
         initial_w=initial_w,
+        max_iters=max_iters,
         gamma=gamma,
-        append_final_loss_flag=append_final_loss_flag,
     )
 
 
@@ -278,13 +353,39 @@ def reg_logistic_regression(
     initial_w: Array1D,
     max_iters: int,
     gamma: float,
-    append_final_loss_flag: bool = True,
-) -> tuple[Array1D, list[float]]:
+) -> tuple[Array1D, float]:
+    """
+    Finds the model parameters for logistic regression with regularization using gradient descent.
+
+    Parameters
+    ----------
+    y : Array1D
+        Our observed binary outputs, an array of shape (N,) where N is the number of samples,
+        the values contained within should be either zero or one.
+    tx : Array2D
+        Our observed inputs, a matrix of shape (N, D) where D is the number of features/dimensions.
+    lambda_ : float
+        The λ term used for regularization.
+    initial_w : Array1D
+        The initial weights.
+    max_iters : int
+        The maximum number of iterations.
+    gamma : float
+        The step size parameter used.
+
+    Returns
+    -------
+    Array1D
+        The final weights of the model.
+    float:
+        The final loss of the model.
+    """
+
     return _gradient_descent_generic(
-        dataloader=create_gd_dataloader(y, tx, max_iters),
+        dataloader=DataLoader(y, tx),
         compute_loss_func=compute_logreg_loss,
         compute_grad_func=partial(compute_logreg_grad_reg, lambda_=lambda_),
         initial_w=initial_w,
+        max_iters=max_iters,
         gamma=gamma,
-        append_final_loss_flag=append_final_loss_flag,
     )

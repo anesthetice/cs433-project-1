@@ -14,8 +14,16 @@ dependencies = [
 ]
 
 [dependency-groups]
+test = ["pytest>=9.1.1"]
+lint = ["ruff>=0.16.10"]
 dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
     "pyrefly>=1.3.2",
-    "pytest>=9.1.1",
-    "ruff>=0.16.10",
 ]
+
+[tool.pytest.ini_options]
+python_functions = "test_* *_test"
+python_files = "test_*.py *_test.py*"
+pythonpath = "."
+testpaths = "tests/"
