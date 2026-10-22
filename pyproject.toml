@@ -1,10 +1,12 @@
 [project]
 name = "ml-project-1"
 version = "0.1.0"
-description = "Add your description here"
+description = "The repository for project 1 from the EPFL course cs-433"
 readme = "README.md"
 authors = [
-    { name = "anesthetice", email = "118751106+anesthetice@users.noreply.github.com" }
+    { name = "Elliot Currat", email = "elliot.currat@epfl.ch" },
+    { name = "Anna Seres", email = "anna.seres@epfl.ch"},
+    { name = "Alexandre Flusin", email = "alexandre.flusin@epfl.ch" },
 ]
 requires-python = ">=3.14.8"
 dependencies = [

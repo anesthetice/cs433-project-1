@@ -1,5 +1,10 @@
 The repository for project 1 from the EPFL course cs-433
 
+Group members:
+- Elliot Currat (elliot.currat@epfl.ch)
+- Anna Seres (anna.seres@epfl.ch)
+- Alexandre Flusin (alexandre.flusin@epfl.ch)
+
 > [!IMPORTANT]
 > The `implementations.py` file is located in the `src/` directory.
 
