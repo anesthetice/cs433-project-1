@@ -1,10 +1,10 @@
-from collections.abc import Generator
 from collections.abc import Callable
 from dataclasses import dataclass
-import numpy as np
-import numpy.typing as npt
 from functools import partial
 from itertools import islice
+
+import numpy as np
+import numpy.typing as npt
 
 # Copied from the dev branch of numpy (will be available in 2.6 according to their online ref)
 type Array1D[ST: np.generic] = np.ndarray[tuple[int], np.dtype[ST]]

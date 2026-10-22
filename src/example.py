@@ -1,5 +1,6 @@
-import helpers
 import numpy as np
+
+import helpers
 
 
 def main():

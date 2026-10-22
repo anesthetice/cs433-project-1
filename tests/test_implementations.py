@@ -1,8 +1,7 @@
 import importlib.machinery
-import pathlib
-import sys
-import pytest
+
 import numpy as np
+import pytest
 
 RTOL = 1e-4
 ATOL = 1e-8
@@ -12,7 +11,7 @@ ATOL = 1e-8
 def student_implementations():
     loader = importlib.machinery.SourceFileLoader(
         fullname="student_implementations",
-        path=str("./src/implementations.py"),
+        path="./src/implementations.py",
     )
     handle = loader.load_module("student_implementations")
     return handle

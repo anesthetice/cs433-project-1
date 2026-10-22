@@ -1,11 +1,12 @@
 """Some helper functions for project 1."""
 
-from io import TextIOWrapper
 import csv
-import numpy as np
 import os
 import pathlib
-import compression.zstd as zstd  # requires python 3.14
+from compression import zstd  # requires python 3.14
+from io import TextIOWrapper
+
+import numpy as np
 
 
 def load_data(
@@ -91,8 +92,7 @@ def load_csv_data(
     data_path: pathlib.Path = pathlib.Path(data_path)
 
     def get_file_object(filename: str) -> TextIOWrapper:
-        if filename.endswith(".zst"):
-            filename = filename[:-4]
+        filename = filename.removesuffix(".zst")
 
         if (filepath := data_path.joinpath(filename + ".zst")).is_file():
             return zstd.open(filepath, mode="rt")
