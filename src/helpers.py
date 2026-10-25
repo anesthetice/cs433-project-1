@@ -1,7 +1,7 @@
 """Some helper functions for project 1."""
 
 import csv
-import os
+from os import PathLike
 import pathlib
 from compression import zstd  # requires python 3.14
 from io import TextIOWrapper
@@ -10,7 +10,7 @@ import numpy as np
 
 
 def load_data(
-    data_path: os.PathLike = "./data/", sub_sample: bool = False
+    data_path: PathLike = "./data/", sub_sample: bool = False
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     It takes like a minute to run `load_csv_data`, use this function instead.
@@ -70,7 +70,7 @@ def load_data(
 
 
 def load_csv_data(
-    data_path: os.PathLike = "./data/", sub_sample: bool = False
+    data_path: PathLike = "./data/", sub_sample: bool = False
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Use `load_data` instead.
