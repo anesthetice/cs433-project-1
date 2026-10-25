@@ -6,14 +6,12 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    from helpers import load_data
-    import implementations as impl
-
-    import numpy as np
-    import polars as pl
-    import marimo as mo
-
     from compression import zstd
+
+    import marimo as mo
+    import polars as pl
+
+    from helpers import load_data
 
     return load_data, mo, pl, zstd
 
@@ -34,14 +32,12 @@ def _(test_ids, train_ids, x_test, x_train, y_train):
     x_test : {x_test.shape}
     test_ids : {test_ids.shape}
     """)
-    return
 
 
 @app.cell
 def _(test_ids, train_ids):
     print(train_ids[0:10], "...", train_ids[-5:])
     print(test_ids[0:10])
-    return
 
 
 @app.cell
@@ -58,7 +54,6 @@ def _(mo, pl, zstd):
 def _(x_test_df):
     for series in x_test_df.null_count().iter_columns():
         print(f"{series.name}: {series[0]}")
-    return
 
 
 @app.cell(hide_code=True)
@@ -72,7 +67,6 @@ def _(mo):
     * The calculated variables: https://www.cdc.gov/brfss/annual_data/2015/pdf/2015_Calculated_Variables_Version4_08_10_17-508c.pdf
         * Many of these are however interesting to us.
     """)
-    return
 
 
 if __name__ == "__main__":

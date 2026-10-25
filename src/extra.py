@@ -1,6 +1,7 @@
+import numpy as np
+
 from implementations import Array1D, Array2D
 
-import numpy as np
 
 def train_test_split(
     y: Array1D,
@@ -8,8 +9,8 @@ def train_test_split(
     train_to_test_ratio: float = 0.8,
     rng_seed: int | None = None,
 ) -> tuple[tuple[Array1D, Array2D], tuple[Array1D, Array2D]]:
-    assert(train_to_test_ratio >=0.0 and train_to_test_ratio <= 1.0)
-    assert(x.shape[0] == y.shape[0])
+    assert train_to_test_ratio >= 0.0 and train_to_test_ratio <= 1.0
+    assert x.shape[0] == y.shape[0]
     N = y.shape[0]
 
     indices: Array1D = np.arange(N)

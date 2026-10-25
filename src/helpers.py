@@ -1,10 +1,10 @@
 """Some helper functions for project 1."""
 
 import csv
-from os import PathLike
 import pathlib
 from compression import zstd  # requires python 3.14
 from io import TextIOWrapper
+from os import PathLike
 
 import numpy as np
 

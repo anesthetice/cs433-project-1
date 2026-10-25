@@ -56,7 +56,8 @@ class DataLoader:
             return self.data
         else:
             indices_for_batch: Array1D = self.rng.choice(
-                np.arange(self.n), size=self.batch_size,
+                np.arange(self.n),
+                size=self.batch_size,
                 replace=False,
             )
             return self.y_[indices_for_batch], self.x_[indices_for_batch, :]
@@ -69,7 +70,7 @@ def _gradient_descent_generic(
     initial_w: Array1D,
     max_iters: int,
     gamma: float,
-    _debug_flag: bool = True
+    _debug_flag: bool = True,
 ) -> tuple[Array1D, float]:
     """
     Generic function for gradient descent. I hate code duplication.
@@ -350,7 +351,7 @@ def compute_logreg_grad_reg(
     y: Array1D, tx: Array2D, w: Array1D, lambda_: float
 ) -> Array1D:
     """Computes the gradient used in logistic regression."""
-    return  compute_logreg_grad(y, tx, w) + 2 * lambda_ * w
+    return compute_logreg_grad(y, tx, w) + 2 * lambda_ * w
 
 
 def compute_logreg_loss_reg(
