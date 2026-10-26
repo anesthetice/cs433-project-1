@@ -1,7 +1,6 @@
 import numpy as np
 
 import extra
-import implementations as impl
 from implementations import Array1D, Array2D
 from processing import load_and_preprocess
 
@@ -18,24 +17,30 @@ def get_pseudo_train_test_sets(
 
 
 def main():
-    (y_train, x_train), (y_test, x_test) = get_pseudo_train_test_sets()
+    RNG_SEED = 10
 
-    w, loss = impl.reg_logistic_regression(
-        y_train,
-        x_train,
-        lambda_=0.001,
-        initial_w=np.ones(x_train.shape[1]),
-        max_iters=300,
-        gamma=0.3,
+    (y_train, x_train), (y_test, x_test) = get_pseudo_train_test_sets(
+        train_to_test_ratio=0.8,
+        rng_seed=RNG_SEED,
     )
 
-    print(w)
+    (w_best, stats_best, iter_best), train_losses, test_losses = (
+        extra.reg_logistic_regression_2(
+            y_train,
+            x_train,
+            y_test,
+            x_test,
+            lambda_value=0.1,
+            initial_w=None,
+            gamma=0.3,
+            max_iters=300,
+            rng_seed=RNG_SEED,
+        )
+    )
 
-    y_pred = -np.ones_like(y_test)
-    y_prob = 1 / (1 + np.exp(-x_test @ w))
-    y_pred[y_prob > 0.5] = +1
-
-    extra.see_statistics(y_true=y_test, y_pred=y_pred)
+    print("Best iter:", iter_best)
+    print(stats_best)
+    print(w_best)
 
 
 if __name__ == "__main__":
