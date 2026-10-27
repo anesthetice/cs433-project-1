@@ -222,6 +222,77 @@ def reg_logistic_regression_2(
     return (w_best, test_loss_best, iter_best), train_losses, test_losses
 
 
+def reg_logistic_regression_f1(
+    y_train: Array1D,
+    x_train: Array2D,
+    y_test: Array1D,
+    x_test: Array2D,
+    lambda_value: float,
+    initial_w: Array1D | None = None,
+    gamma: float = 0.6,
+    n_iters: int = 100,
+    batch_size: int | None = 8192,
+    rng_seed: int | None = None,
+) -> tuple[tuple[Array1D, float, dict[str, float], int], list[float], list[float]]:
+    """
+    Same as `reg_logistic_regression_2`, but the best model is the one with the highest F1 score
+    on the test set, using the best threshold for each iteration.
+
+    Parameters
+    ----------
+    See `reg_logistic_regression_2`.
+
+    Returns
+    -------
+    tuple[Array1D, float, dict[str, float], int]
+        The final weights of the best model, its threshold, its stats, and iteration number.
+    list[float]
+        The training loss at each step.
+    list[float]
+        The testing loss at each step.
+    """
+
+    _, D = x_train.shape
+    rng = np.random.default_rng(rng_seed)
+    train_losses = []
+    test_losses = []
+
+    w: Array1D = initial_w if initial_w is not None else rng.standard_normal(D)
+    dataloader = DataLoader(y_train, x_train, batch_size, rng_seed)
+
+    w_best: Array1D = w.copy()
+    tr_best = 0.5
+    stats_best: dict[str, float] = {"F1": -1.0}
+    iter_best = 0
+
+    def gamma_with_decay(curr_iter: int) -> float:
+        return (gamma - 0.15 * gamma) * math.exp(
+            -5 * curr_iter / n_iters
+        ) + 0.15 * gamma
+
+    for n_iter, (y, x) in enumerate(islice(dataloader, n_iters + 1)):
+        train_loss = compute_logreg_loss_reg(*dataloader.data, w, lambda_value)
+        train_losses.append(train_loss)
+
+        test_loss = compute_logreg_loss_reg(y_test, x_test, w, lambda_value)
+        test_losses.append(test_loss)
+
+        tr, stats = find_best_threshold(y_test, x_test, w)
+
+        print(f"Iter n°{n_iter:03}: F1 = {stats['F1']:.3f} (threshold = {tr:.3f})")
+
+        if stats["F1"] > stats_best["F1"]:
+            w_best = w.copy()
+            tr_best = tr
+            stats_best = stats
+            iter_best = n_iter
+
+        grad: Array1D = compute_logreg_grad_reg(y, x, w, lambda_value)
+        w = w - gamma_with_decay(n_iter) * grad
+
+    return (w_best, tr_best, stats_best, iter_best), train_losses, test_losses
+
+
 _ = """
     def balanced_dl(dl: DataLoader):
         pos_indices = np.argwhere(dl.y == +1)
