@@ -5,57 +5,58 @@ COLNAME_TO_IDX: dict[str, int] = {
     name: idx for idx, name in enumerate(IDX_TO_COLNAME)
 }
 
-# NaN will always be treated as an unknown value.
+
+# Note that NaN will always be treated as an unknown value.
 INTERESTING_FEATURES: list[dict] = [
 
     # General Health
-    dict(colname="GENHLTH", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="GENHLTH", type="ordcat", uvs=[7, 9]),
     # Number of Days Physical Health Not Good
-    dict(colname="PHYSHLTH", type="numerical", uvs=[77, 99], rnw=77),
+    dict(colname="PHYSHLTH", type="numerical", uvs=[77, 99], replace=[(88, 0)]),
     # Have any health care coverage
-    dict(colname="HLTHPLN1", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="HLTHPLN1", type="ordcat", uvs=[7, 9]),
     # Multiple Health Care Professionals (not ordered categorical since values are not ordered: 1, 2, 0)
     dict(colname="PERSDOC2", type="cat", uvs=[7, 9]),
     # Could Not See Doctor Because of Cost
-    dict(colname="MEDCOST", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="MEDCOST", type="ordcat", uvs=[7, 9]),
     # Length of time since last routine checkup
-    dict(colname="CHECKUP1", type="ordcat", uvs=[7, 9], rnw=7, replace=[(8, 5)]),
+    dict(colname="CHECKUP1", type="ordcat", uvs=[7, 9], replace=[(8, 5)]),
 
     # Calculated variable for adults who have been told they have high blood pressure
-    dict(colname="_RFHYPE5", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_RFHYPE5", type="ordcat", uvs=[9]),
     # Currently Taking Blood Pressure Medication
-    dict(colname="BPMEDS", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="BPMEDS", type="ordcat", uvs=[7, 9]),
 
     # How Long since Cholesterol Checked
-    dict(colname="CHOLCHK", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CHOLCHK", type="ordcat", uvs=[7, 9]),
     # Ever Told Blood Cholesterol High
-    dict(colname="TOLDHI2", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="TOLDHI2", type="ordcat", uvs=[7, 9]),
 
     # Ever had a stroke?
-    dict(colname="CVDSTRK3", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CVDSTRK3", type="ordcat", uvs=[7, 9]),
 
     # Calculated variable for computed asthma status. (1=Current, 2=Former, 3=Never)
-    dict(colname="_ASTHMS1", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_ASTHMS1", type="ordcat", uvs=[9]),
 
     # Ever told you had skin cancer?
-    dict(colname="CHCSCNCR", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CHCSCNCR", type="ordcat", uvs=[7, 9]),
     # Ever told you had any other types of cancer?
-    dict(colname="CHCOCNCR", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CHCOCNCR", type="ordcat", uvs=[7, 9]),
 
     # Ever told you have chronic obstructive pulmonary disease, emphysema or chronic bronchitis?
-    dict(colname="CHCCOPD1", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CHCCOPD1", type="ordcat", uvs=[7, 9]),
 
     # Told Have Arthritis
-    dict(colname="HAVARTH3", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="HAVARTH3", type="ordcat", uvs=[7, 9]),
 
     # Ever told you had a depressive disorder
-    dict(colname="ADDEPEV2", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="ADDEPEV2", type="ordcat", uvs=[7, 9]),
 
     # Ever told you have kidney disease?
-    dict(colname="CHCKIDNY", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CHCKIDNY", type="ordcat", uvs=[7, 9]),
 
     # Ever told you have diabetes
-    dict(colname="DIABETE3", type="ordcat", uvs=[7, 9], rnw=7, replace=[(3, 5)]),
+    dict(colname="DIABETE3", type="ordcat", uvs=[7, 9], replace=[(3, 5)]),
 
     # ---
 
@@ -63,115 +64,115 @@ INTERESTING_FEATURES: list[dict] = [
     dict(colname="SEX", type="ordcat", uvs=[]),
 
     # Education Level
-    dict(colname="EDUCA", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="EDUCA", type="ordcat", uvs=[9]),
 
     # Own or Rent Home
-    dict(colname="RENTHOM1", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="RENTHOM1", type="ordcat", uvs=[7, 9]),
 
     # Are You A Veteran
-    dict(colname="VETERAN3", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="VETERAN3", type="ordcat", uvs=[7, 9]),
 
     # Employment Status
     dict(colname="EMPLOY1", type="cat", uvs=[9]),
 
     # DO THESE MANUALLY
     # Number of Adults in Household (land line)
-    #dict(colname="NUMADULT", type="numerical", uvs=[], rnw=?),
+    #dict(colname="NUMADULT", type="numerical", uvs=[]),
     # Number of Adults in Household (cell phone)
-    #dict(colname="HHADULT", type="numerical", uvs=[77, 99], rnw=77),
+    #dict(colname="HHADULT", type="numerical", uvs=[77, 99]),
     # Income Level
-    dict(colname="INCOME2", type="ordcat", uvs=[77, 99], rnw=77),
+    dict(colname="INCOME2", type="ordcat", uvs=[77, 99]),
 
     # Activity Limitation Due to Health Problems
-    dict(colname="QLACTLM2", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="QLACTLM2", type="ordcat", uvs=[7, 9]),
     # Health Problems Requiring Special Equipment
-    dict(colname="USEEQUIP", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="USEEQUIP", type="ordcat", uvs=[7, 9]),
     # Difficulty Concentrating or Remembering
-    dict(colname="DECIDE", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="DECIDE", type="ordcat", uvs=[7, 9]),
     # Difficulty Walking or Climbing Stairs
-    dict(colname="DIFFWALK", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="DIFFWALK", type="ordcat", uvs=[7, 9]),
     # Difficulty Dressing or Bathing
-    dict(colname="DIFFDRES", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="DIFFDRES", type="ordcat", uvs=[7, 9]),
     # Difficulty Doing Errands Alone
-    dict(colname="DIFFALON", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="DIFFALON", type="ordcat", uvs=[7, 9]),
 
     # Calculated variable for "race", there's a lot of these but this one seems somewhat reasonable (still not great though, but then again this is an american survey after all...)
     dict(colname="_RACE", type="cat", uvs=[9]),
     # Calculated variable for fourteen level age category, "AGE" by itself isn't here unfortunately.
-    dict(colname="_AGEG5YR", type="ordcat", uvs=[14], rnw=14),
+    dict(colname="_AGEG5YR", type="ordcat", uvs=[14]),
 
     # Calculated variable for reported height in meters.
-    dict(colname="HTM4", type="numerical", uvs=[], rnw=9.99),
+    dict(colname="HTM4", type="numerical", uvs=[]),
     # Calculated variable for reported weight in kilograms.
-    dict(colname="WTKG3", type="numerical", uvs=[], rnw=999.99),
+    dict(colname="WTKG3", type="numerical", uvs=[]),
     # Calculated variable for four - categories of body mass index (bmi).
-    dict(colname="_BMI5CAT", type="ordcat", uvs=[], rnw=7),
+    dict(colname="_BMI5", type="numerical", uvs=[]),
 
     # ---
 
     # Calculated variable for four - level smoker status: everyday smoker, someday smoker, former smoker, non-smoker.
-    dict(colname="_SMOKER3", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_SMOKER3", type="ordcat", uvs=[9]),
 
     # ---
 
     # Calculated variable for calculated total number of alcoholic beverages consumed per week.
-    dict(colname="_DRNKWEK", type="numerical", uvs=[99900], rnw=99900),
+    dict(colname="_DRNKWEK", type="numerical", uvs=[99900]),
     # Calculated variable for heavy drinkers
-    dict(colname="_RFDRHV5", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_RFDRHV5", type="ordcat", uvs=[9]),
 
     # ---
 
     # Calculated variable for total fruits consumed per day.
-    dict(colname="_FRUTSUM", type="numerical", uvs=[], rnw=999.99),
+    dict(colname="_FRUTSUM", type="numerical", uvs=[]),
     # Calculated variable for consume fruit 1 or more times per day.
-    dict(colname="_FRTLT1", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_FRTLT1", type="ordcat", uvs=[9]),
 
     # Calculated variable for total vegetables consumed per day.
-    dict(colname="_VEGESUM", type="numerical", uvs=[], rnw=999.88),
+    dict(colname="_VEGESUM", type="numerical", uvs=[]),
     # Calculated variable for consume vegetables 1 or more times per day.
-    dict(colname="_VEGLT1", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_VEGLT1", type="ordcat", uvs=[9]),
 
     # ---
 
     # Calculated variable for minutes of total physical activity per week.
-    dict(colname="PA1MIN_", type="numerical", uvs=[], rnw=99999),
+    dict(colname="PA1MIN_", type="numerical", uvs=[]),
     # Calculated variable for minutes of total vigorous physical activity per week.
-    dict(colname="PA1VIGM_", type="numerical", uvs=[], rnw=99999),
+    dict(colname="PA1VIGM_", type="numerical", uvs=[]),
     # Calculated variable for physical activity categories.
-    dict(colname="_PACAT1", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_PACAT1", type="ordcat", uvs=[9]),
     # Calculated variable for muscle strengthening recommendation.
-    dict(colname="_PASTRNG", type="ordcat", uvs=[9], rnw=9),
+    dict(colname="_PASTRNG", type="ordcat", uvs=[9]),
 
     # ---
     # These are the more sparse modules ahead
     # ---
 
     # Doctor Advised Reduced Sodium/Salt Intake
-    dict(colname="DRADVISE", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="DRADVISE", type="ordcat", uvs=[7, 9]),
 
     # Outpatient rehab after heart attack hosp stay
     # (Why didn't they remove this from the dataset though...)
     # (Note that yes + no ≃ 1000 here while for heart attack question yes ≃ 25'000)
-    dict(colname="CVDASPRN", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="STREHAB1", type="cat", uvs=[7, 9]),
 
     # Take Aspirin Daily or Every Other Day
-    dict(colname="CVDASPRN", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="CVDASPRN", type="ordcat", uvs=[7, 9]),
     # Health Makes Taking Aspirin Unsafe
-    dict(colname="ASPUNSAF", type="ordcat", uvs=[7, 9], rnw=7, replace=[(2, 1)]),
+    dict(colname="ASPUNSAF", type="ordcat", uvs=[7, 9], replace=[(2, 1)]),
     # Take Aspirin to Relieve Pain
-    dict(colname="RLIVPAIN", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="RLIVPAIN", type="ordcat", uvs=[7, 9]),
     # Take Aspirin to Reduce Chance of Heart Attack
-    dict(colname="RDUCHART", type="ordcat", uvs=[7, 9], rnw=7),
+    dict(colname="RDUCHART", type="ordcat", uvs=[7, 9]),
 
     # Times Past 12 Months Worried/Stressed About Having Enough Money To Pay Your Rent/Mortgage?
-    dict(colname="SCNTMNY1", type="ordcat", uvs=[7, 8, 9], rnw=7),
+    dict(colname="SCNTMNY1", type="ordcat", uvs=[7, 8, 9]),
     # Times Past 12 Months Worried/Stressed About Having Enough Money To Buy Nutritious Meals?
-    dict(colname="SCNTMEL1", type="ordcat", uvs=[7, 8, 9], rnw=7),
+    dict(colname="SCNTMEL1", type="ordcat", uvs=[7, 8, 9]),
     # How Many Hours Per Week Do You Work
-    dict(colname="SCNTWRK1", type="numerical", uvs=[97, 99], rnw=97, replace=[(98, 0)]),
+    dict(colname="SCNTWRK1", type="numerical", uvs=[97, 99], replace=[(98, 0)]),
 
-    #dict(colname="", type="ordcat", uvs=[7, 9], rnw=7),
+    #dict(colname="", type="ordcat", uvs=[7, 9]),
     #dict(colname="", type="cat", uvs=[9]),
-    #dict(colname="", type="numerical", uvs=[], rnw=99999),
+    #dict(colname="", type="numerical", uvs=[]),
 ]
 # fmt: on

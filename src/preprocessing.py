@@ -13,9 +13,8 @@ def process_feature(
     colname: str,
     feature_type: Literal["cat", "ordcat", "numerical"],
     unknown_values: list[float] = [],
-    replace_nan_with: int | None = None,
     replace_vals: list[tuple[float, float]] | None = None,
-):
+) -> Array2D:
     N = col.shape[0]
     print(f"Working on the {feature_type} feature `{colname}`")
 
@@ -74,9 +73,8 @@ def process_feature(
             mean: float = np.mean(col[valid_mask])
             std: float = np.std(col[valid_mask])
 
-            print(
-                f" * median (used as imputer): {median:.2f}\n * μ: {mean:.2f}, σ: {std:.2f}"
-            )
+            print(f" * median (used as imputer): {median:.2f}")
+            print(f" * μ: {mean:.2f}, σ: {std:.2f}, max: {np.max(col[valid_mask]):.2f}")
 
             col[~valid_mask] = median
 
@@ -93,16 +91,12 @@ def process_feature(
             raise ValueError
 
 
-def standardize(x: Array2D) -> Array2D:
-    x = x - np.mean(x, axis=0)
-    x = x / np.std(x, axis=0)
-    return x
-
-
 def load_and_preprocess(
-    data_path: PathLike = "./data/", sub_sample: bool = False
-) -> tuple[Array2D, Array1D, Array2D]:
-    x_train, x_test, y_train, _, _ = load_data(data_path)
+    target_features: list[dict] = INTERESTING_FEATURES,
+    data_path: PathLike = "./data/",
+    sub_sample: bool = False,
+) -> tuple[Array2D, Array1D, Array2D, list[str]]:
+    x_train, x_test, y_train, _, _ = load_data(data_path, sub_sample)
 
     N_train = x_train.shape[0]
     N_test = x_test.shape[0]
@@ -111,7 +105,8 @@ def load_and_preprocess(
     assert x_full.shape[0] == N_train + N_test
 
     parts: list[np.ndarray] = []
-    for entry in INTERESTING_FEATURES:
+    colidx_to_colname: list[str] = []
+    for entry in target_features:
         colname: str = entry["colname"]
         colidx: int = COLNAME_TO_IDX[colname]
 
@@ -120,13 +115,13 @@ def load_and_preprocess(
             colname=colname,
             feature_type=entry["type"],
             unknown_values=entry["uvs"],
-            replace_nan_with=entry["rnw"] if "rnw" in entry.keys() else None,
-            replace_vals=entry["replace"] if "replace" in entry.keys() else None,
+            replace_vals=entry["replace"] if "replace" in entry else None,
         )
 
         parts.append(processed)
+        colidx_to_colname.extend([colname] * processed.shape[1])
 
     x_full_out = np.hstack(parts)
     assert x_full_out.shape[0] == N_train + N_test
 
-    return x_full_out[:N_train, :], y_train, x_full_out[N_train:, :]
+    return x_full_out[:N_train, :], y_train, x_full_out[N_train:, :], colidx_to_colname

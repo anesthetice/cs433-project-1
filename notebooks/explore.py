@@ -12,10 +12,14 @@ def _():
 
     import marimo as mo
     import polars as pl
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import numpy as np
 
     from helpers import load_data
+    from consts import COLNAME_TO_IDX, IDX_TO_COLNAME
 
-    return load_data, mo, pl, zstd
+    return COLNAME_TO_IDX, load_data, mo, np, pl, plt, sns, zstd
 
 
 @app.cell
@@ -56,8 +60,7 @@ def _(mo, pl, zstd):
 
 @app.cell
 def _(x_test_df):
-    for series in x_test_df.null_count().iter_columns():
-        print(f"{series.name}: {series[0]}")
+    x_test_df["STREHAB1"].null_count()
     return
 
 
@@ -71,77 +74,48 @@ def _(mo):
         * This is where a lot of useless (to us at least) variables are, stuff like `IMONTH` (the interview month)
     * The calculated variables: https://www.cdc.gov/brfss/annual_data/2015/pdf/2015_Calculated_Variables_Version4_08_10_17-508c.pdf
         * Many of these are however interesting to us.
+
+    See `src/consts.py`
     """)
     return
 
 
 @app.cell
-def _():
-    from main import get_pseudo_train_test_sets
-    from importlib import reload
-    import extra
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import numpy as np
-
-    sns.set_theme()
-    return extra, get_pseudo_train_test_sets, np, plt, reload
-
-
-@app.cell
-def _():
+def _(COLNAME_TO_IDX, np, x_train):
+    np.isnan(x_train[:, COLNAME_TO_IDX["STREHAB1"]]).sum()
     return
 
 
 @app.cell
-def _(extra, get_pseudo_train_test_sets, np, plt, reload):
+def _(COLNAME_TO_IDX, np, plt, sns, x_train, y_train):
     def _():
-        reload(extra)
-        RNG_SEED = 10
+        colname = "_BMI5CAT"
+        coltype = "cat"
 
-        (y_train2, x_train2), (y_test2, x_test2) = get_pseudo_train_test_sets(
-            train_to_test_ratio=0.8,
-            rng_seed=RNG_SEED,
-        )
+        colidx = COLNAME_TO_IDX[colname]
+        col = x_train[:, colidx]
 
-        (w_best, stats_best, iter_best), train_losses, test_losses = (
-            extra.reg_logistic_regression_2(
-                y_train2,
-                x_train2,
-                y_test2,
-                x_test2,
-                lambda_value=0.1,
-                initial_w=None,
-                gamma=0.12,
-                max_iters=300,
-                batch_size=8192,
-                rng_seed=RNG_SEED,
-            )
-        )
+        finite_mask = np.isfinite(col)
+        # col[~finite_mask] = -1
 
-        print(f"\n-- BEST MODEL --")
-        print(f"Iter n°{iter_best:03}")
-        print(f"├─┄ TP = {stats_best['TP']}, TN = {stats_best['TN']}")
-        print(f"├─┄ FP = {stats_best['FP']}, FN = {stats_best['FN']}")
-        print(f"├─┄ sensitivity = {stats_best['sensitivity']:.2f}")
-        print(f"└─┄ specificity = {stats_best['specificity']:.2f}\n")
-
-        fig, ax1 = plt.subplots(1, 1, figsize=(9, 5))
+        fig, ax1 = plt.subplots(1, 1, figsize=(5, 5))
         ax: plt.Axes = ax1
-
-        iter_indices = np.arange(len(train_losses))
-        ax.plot(
-            iter_indices, train_losses, ls="--", color="blue", label="training loss"
+        sns.histplot(
+            x=col[finite_mask],
+            hue=y_train[finite_mask],
+            discrete=True,
+            multiple="layer",
+            # log_scale=(False, True)
         )
-        ax.plot(
-            iter_indices, test_losses, ls="--", color="purple", label="testing loss"
-        )
-        ax.legend()
 
-        fig.tight_layout()
         return fig
 
     _()
+    return
+
+
+@app.cell
+def _():
     return
 
 
