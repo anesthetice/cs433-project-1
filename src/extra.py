@@ -108,6 +108,30 @@ def compute_statistics(
     }
 
 
+def find_best_threshold(
+    y_true: Array1D,
+    x: Array2D,
+    w: Array1D,
+    thresholds: Array1D = np.linspace(0, 1, 201),
+) -> tuple[float, dict[str, float]]:
+    """Finds the threshold that maximizes the F1 score, returns it with its stats."""
+    y_prob = 1 / (1 + np.exp(-x @ w))
+
+    tr_best = 0.5
+    stats_best: dict[str, float] = {"F1": -1.0}
+
+    for tr in thresholds:
+        y_pred = -np.ones_like(y_true)
+        y_pred[y_prob > tr] = +1
+        stats = compute_statistics(y_true=y_true, y_pred=y_pred)
+
+        if stats["F1"] > stats_best["F1"]:
+            tr_best = tr
+            stats_best = stats
+
+    return tr_best, stats_best
+
+
 def reg_logistic_regression_2(
     y_train: Array1D,
     x_train: Array2D,
