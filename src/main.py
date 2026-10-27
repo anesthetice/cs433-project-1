@@ -15,18 +15,22 @@ def main():
         )
     )
 
-    (w_best, loss_best, iter_best), train_losses, test_losses = (
-        extra.reg_logistic_regression_2(
+    (w_best, tr_best, stats_best, iter_best), train_losses, test_losses = (
+        extra.reg_logistic_regression_f1(
             y_train,
             x_train,
             y_test,
             x_test,
-            lambda_value=0.1,
-            initial_w=None,
-            gamma=0.3,
+            lambda_value=1e-5,
+            initial_w=np.zeros(x_train.shape[1]),
+            gamma=0.6,
             n_iters=300,
             rng_seed=RNG_SEED,
         )
+    )
+
+    print(
+        f"\nBest iter n°{iter_best}: F1 = {stats_best['F1']} (threshold = {tr_best})"
     )
 
 
