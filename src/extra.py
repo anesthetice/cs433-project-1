@@ -83,6 +83,12 @@ def compute_statistics(
     # Also known as the true negative ratio (TNR), or recall, it's the probability of a negative test result, conditioned on the individual truly being negative.
     specificity = TN / N  # N = FP + TN
 
+    # Also known as the positive predictive value (PPV), it's the probability of the individual truly being positive, conditioned on a positive test result.
+    precision = TP / PP if PP > 0 else 0.0  # PP = TP + FP
+
+    # Harmonic mean of precision and recall, this is the metric used to rank submissions.
+    f1 = 2 * TP / (2 * TP + FP + FN) if TP > 0 else 0.0
+
     return {
         "P": P,
         "N": N,
@@ -96,6 +102,9 @@ def compute_statistics(
         "TPR": sensitivity,
         "specificity": specificity,
         "TNR": specificity,
+        "precision": precision,
+        "PPV": precision,
+        "F1": f1,
     }
 
 
