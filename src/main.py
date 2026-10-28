@@ -38,6 +38,12 @@ def main():
     print()
     print("Split-off a validation set from the training set:")
     print(f"{x_train_old_shape} -> {x_train.shape} + {x_valid.shape} (validation)")
+
+    # Standardize with the training stats only, and add a bias column
+    x_train, x_valid, x_test = extra.standardize_and_add_bias(x_train, x_valid, x_test)
+
+    print("Standardized features and made a bias column:")
+    print(f"{x_train.shape[1] - 1} -> {x_train.shape[1]} features")
     print()
     print("## Running L2-regularized logistic regression targetting the iteration with the best F1-score across thresholds")
 
