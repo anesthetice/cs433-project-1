@@ -154,6 +154,7 @@ INTERESTING_FEATURES: list[dict] = [
     # (Why didn't they remove this from the dataset though...)
     # (Note that yes + no ≃ 1000 here while for heart attack question yes ≃ 25'000)
     dict(colname="STREHAB1", type="cat", uvs=[7, 9]),
+    dict(colname="HAREHAB1", type="cat", uvs=[7, 9]),
 
     # Take Aspirin Daily or Every Other Day
     dict(colname="CVDASPRN", type="ordcat", uvs=[7, 9]),
