@@ -4,6 +4,7 @@ from itertools import islice
 import numpy as np
 from os import PathLike
 import math
+from copy import deepcopy
 from implementations import (
     Array1D,
     Array2D,
@@ -279,7 +280,7 @@ def reg_logistic_regression_f1(
 
         tr, stats = find_best_threshold(y_test, x_test, w)
 
-        print(f"Iter n°{n_iter:03}: F1 = {stats['F1']:.3f} (threshold = {tr:.3f})")
+        print(f"Iter n°{n_iter:03}: γ = {gamma_with_decay(n_iter):.2f}, test loss = {test_loss:.3f}, valid loss = {test_loss:.3f}, F1 = {stats['F1']:.3f} (threshold = {tr:.3f})")
 
         if stats["F1"] > stats_best["F1"]:
             w_best = w.copy()
@@ -292,6 +293,24 @@ def reg_logistic_regression_f1(
 
     return (w_best, tr_best, stats_best, iter_best), train_losses, test_losses
 
+
+def predict_knn(
+    y_train: Array1D,
+    x_train: Array2D,
+    x_test: Array2D,
+    k: int = 5,
+) -> Array1D:
+    """Very slow..."""
+    y_pred = np.empty(x_test.shape[0])
+
+    for i in range(x_test.shape[0]):
+        dists = np.sum(np.square(x_train - x_test[i, :]), axis=1)
+        assert(dists.shape == (x_train.shape[0],))
+        indices = np.argpartition(dists, k)[:k]
+
+        y_pred[i] = +1 if y_train[indices].mean() >= 0.5 else -1
+
+    return y_pred
 
 _ = """
     def balanced_dl(dl: DataLoader):

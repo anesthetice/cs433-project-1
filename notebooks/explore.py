@@ -29,6 +29,18 @@ def _(load_data):
 
 
 @app.cell
+def _(test_ids):
+    test_ids
+    return
+
+
+@app.cell
+def _(x_train):
+    x_train.shape
+    return
+
+
+@app.cell
 def _(test_ids, train_ids, x_test, x_train, y_train):
     print(f"""
     x_train : {x_train.shape}     | (values are either missing or a whole positive integer)
