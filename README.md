@@ -8,7 +8,6 @@ Group members:
 > [!IMPORTANT]
 > The `implementations.py` file is located in the `src/` directory.
 
-Maybe use a symlink later so they don't fail us?
 
 ## Getting Started
 
@@ -26,6 +25,12 @@ Once again, you should adapt the above to your specific virtual environment tool
 
 You might also have to move the files located within the `src/` directory into the root directory for this repository.
 
+## Generating the predictions
+
+``` sh
+# Just run the `main.py` script
+uv run src/main.py
+```
 
 ## Running Tests
 

@@ -286,11 +286,22 @@ def compute_logreg_loss(
     tx: Array2D,
     w: Array1D,
 ) -> float:
-    """Computes the loss for logistic regression for labels in {-1, +1}."""
-    return np.mean(np.logaddexp(0.0, -(y * (tx @ w))))
+    """Computes the loss for logistic regression for labels in {0, +1}."""
     # Old approach, works for {0, +1}, but incorrect for {-1, +1}
     # From the expression (1/N) * sum_{n=1}^{N} -y_n * x_n^T w + ln(1 + exp(x_n^T w))
-    # return np.mean(-y * log_odds + np.logaddexp(0, log_odds))
+    log_odds = tx @ w
+    return np.mean(-y * log_odds + np.logaddexp(0, log_odds))
+
+
+def compute_logreg_loss_2(
+    y: Array1D,
+    tx: Array2D,
+    w: Array1D,
+) -> float:
+    """Computes the loss for logistic regression for labels in {-1, +1}."""
+    return np.mean(np.logaddexp(0.0, -(y * (tx @ w))))
+
+
 
 
 def compute_logreg_grad(
@@ -298,11 +309,20 @@ def compute_logreg_grad(
     tx: Array2D,
     w: Array1D,
 ) -> Array1D:
+    """Computes the gradient used in logistic regression for labels in {0, +1}."""
+    N = y.shape[0]
+    # Old approach, works for {0, +1}, but incorrect for {-1, +1}
+    return (1 / N) * tx.T @ (logistic_func(tx @ w) - y)
+
+
+def compute_logreg_grad_2(
+    y: Array1D,
+    tx: Array2D,
+    w: Array1D,
+) -> Array1D:
     """Computes the gradient used in logistic regression for labels in {-1, +1}."""
     N = y.shape[0]
     return -(tx.T @ (y * logistic_func(-y * (tx @ w)))) / N
-    # Old approach, works for {0, +1}, but incorrect for {-1, +1}
-    # return (1 / N) * tx.T @ (logistic_func(tx @ w) - y)
 
 
 def logistic_regression(
@@ -354,6 +374,14 @@ def compute_logreg_grad_reg(
     return compute_logreg_grad(y, tx, w) + 2 * lambda_ * w
 
 
+def compute_logreg_grad_reg_2(
+    y: Array1D, tx: Array2D, w: Array1D, lambda_: float
+) -> Array1D:
+    """Computes the gradient used in logistic regression."""
+    return compute_logreg_grad_2(y, tx, w) + 2 * lambda_ * w
+
+
+
 def compute_logreg_loss_reg(
     y: Array1D,
     tx: Array2D,
@@ -361,6 +389,17 @@ def compute_logreg_loss_reg(
     lambda_: float,
 ) -> float:
     return compute_logreg_loss(y, tx, w) + lambda_ * np.sum(w**2)
+
+
+
+def compute_logreg_loss_reg_2(
+    y: Array1D,
+    tx: Array2D,
+    w: Array1D,
+    lambda_: float,
+) -> float:
+    return compute_logreg_loss_2(y, tx, w) + lambda_ * np.sum(w**2)
+
 
 
 def reg_logistic_regression(
@@ -400,7 +439,7 @@ def reg_logistic_regression(
 
     return _gradient_descent_generic(
         dataloader=DataLoader(y, tx),
-        compute_loss_func=partial(compute_logreg_loss_reg, lambda_=lambda_),
+        compute_loss_func=compute_logreg_loss,
         compute_grad_func=partial(compute_logreg_grad_reg, lambda_=lambda_),
         initial_w=initial_w,
         max_iters=max_iters,

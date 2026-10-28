@@ -8,8 +8,8 @@ from copy import deepcopy
 from implementations import (
     Array1D,
     Array2D,
-    compute_logreg_grad_reg,
-    compute_logreg_loss_reg,
+    compute_logreg_grad_reg_2,
+    compute_logreg_loss_reg_2,
     DataLoader,
 )
 
@@ -220,10 +220,10 @@ def reg_logistic_regression_2(
         ) + 0.15 * gamma
 
     for n_iter, (y, x) in enumerate(islice(dataloader, n_iters + 1)):
-        train_loss = compute_logreg_loss_reg(*dataloader.data, w, lambda_value)
+        train_loss = compute_logreg_loss_reg_2(*dataloader.data, w, lambda_value)
         train_losses.append(train_loss)
 
-        test_loss = compute_logreg_loss_reg(y_test, x_test, w, lambda_value)
+        test_loss = compute_logreg_loss_reg_2(y_test, x_test, w, lambda_value)
         test_losses.append(test_loss)
 
         # fmt: off
@@ -237,7 +237,7 @@ def reg_logistic_regression_2(
             iter_best = n_iter
             test_loss_best = test_loss
 
-        grad: Array1D = compute_logreg_grad_reg(y, x, w, lambda_value)
+        grad: Array1D = compute_logreg_grad_reg_2(y, x, w, lambda_value)
         w = w - gamma_with_decay(n_iter) * grad
 
     return (w_best, test_loss_best, iter_best), train_losses, test_losses
@@ -292,10 +292,10 @@ def reg_logistic_regression_f1(
         ) + 0.15 * gamma
 
     for n_iter, (y, x) in enumerate(islice(dataloader, n_iters + 1)):
-        train_loss = compute_logreg_loss_reg(*dataloader.data, w, lambda_value)
+        train_loss = compute_logreg_loss_reg_2(*dataloader.data, w, lambda_value)
         train_losses.append(train_loss)
 
-        test_loss = compute_logreg_loss_reg(y_test, x_test, w, lambda_value)
+        test_loss = compute_logreg_loss_reg_2(y_test, x_test, w, lambda_value)
         test_losses.append(test_loss)
 
         tr, stats = find_best_threshold(y_test, x_test, w)
@@ -308,7 +308,7 @@ def reg_logistic_regression_f1(
             stats_best = stats
             iter_best = n_iter
 
-        grad: Array1D = compute_logreg_grad_reg(y, x, w, lambda_value)
+        grad: Array1D = compute_logreg_grad_reg_2(y, x, w, lambda_value)
         w = w - gamma_with_decay(n_iter) * grad
 
     return (w_best, tr_best, stats_best, iter_best), train_losses, test_losses

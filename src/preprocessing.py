@@ -78,10 +78,6 @@ def process_feature(
 
             col[~valid_mask] = median
 
-            # maybe use old values here?
-            col = col - np.mean(col)
-            col = col / np.std(col)
-
             output: Array2D = np.zeros(shape=(N, 2), dtype=np.float64)
             output[:, 0] = col
             output[:, 1] = ~valid_mask
