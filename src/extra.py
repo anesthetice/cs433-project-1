@@ -34,6 +34,26 @@ def train_test_split(
     return (y[train_indices], x[train_indices]), (y[test_indices], x[test_indices])
 
 
+def standardize_and_add_bias(
+    x_train: Array2D,
+    x_valid: Array2D,
+    x_test: Array2D,
+) -> tuple[Array2D, Array2D, Array2D]:
+    """Standardizes every column using only the training set's stats, then adds a column of ones (bias)."""
+    assert x_train.shape[1] == x_valid.shape[1] == x_test.shape[1]
+
+    mean: Array1D = x_train.mean(axis=0)
+    std: Array1D = x_train.std(axis=0)
+    std[std == 0] = 1.0
+
+    outputs = []
+    for x in (x_train, x_valid, x_test):
+        x = (x - mean) / std
+        outputs.append(np.hstack((np.ones((x.shape[0], 1)), x)))
+
+    return outputs[0], outputs[1], outputs[2]
+
+
 def get_pseudo_train_test_sets(
     target_features: list[dict] = INTERESTING_FEATURES,
     data_path: PathLike = "./data/",
