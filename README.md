@@ -1,3 +1,4 @@
+![Uploading plot.svg…]()
 The repository for project 1 from the EPFL course cs-433
 
 Group members:
@@ -58,7 +59,7 @@ Best iter n°295: F1 = 0.4408793009284544 (threshold = 0.2)
 ├─┄ precision = 0.37
 └─┄ F1-score = 0.44
 ```
-
+<img width="1023" height="670" alt="Pasted image" src="https://github.com/user-attachments/assets/dcc5b3a0-9df9-461c-a59f-d8160103eddf" />
 
 # Notes and Observations
 
